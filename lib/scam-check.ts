@@ -20,7 +20,14 @@ export type ScamCheckListing = {
 export async function scamCheck(
   listing: ScamCheckListing
 ): Promise<ScamCheckResult> {
-  return geminiJSON<ScamCheckResult>(buildScamCheckPrompt(listing))
+  try {
+    return await geminiJSON<ScamCheckResult>(buildScamCheckPrompt(listing))
+  } catch (error) {
+    // Fail open: a Gemini outage shouldn't block or flag a listing. Default
+    // to "not a scam" with no flags rather than surfacing an error.
+    console.error("[scamCheck] Gemini failed, defaulting to not-scam:", error)
+    return { isScam: false, confidence: 0, flags: [] }
+  }
 }
 
 function buildScamCheckPrompt(listing: ScamCheckListing) {

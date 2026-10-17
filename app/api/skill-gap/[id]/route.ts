@@ -63,12 +63,70 @@ export async function getSkillGapData(
     (skill) => !owned.has(skill.toLowerCase())
   )
 
-  const { freePath, proofTask } = await geminiJSON<{
-    freePath: FreePathWeek[]
-    proofTask: string
-  }>(buildSkillGapPrompt(opportunity.title, missingSkills))
+  let freePath: FreePathWeek[]
+  let proofTask: string
+  try {
+    const result = await geminiJSON<{
+      freePath: FreePathWeek[]
+      proofTask: string
+    }>(buildSkillGapPrompt(opportunity.title, missingSkills))
+    freePath = result.freePath
+    proofTask = result.proofTask
+  } catch (error) {
+    console.error(
+      "[skill-gap] Gemini failed, using a search-link fallback path:",
+      error
+    )
+    const fallback = buildFallbackFreePath(missingSkills)
+    freePath = fallback.freePath
+    proofTask = fallback.proofTask
+  }
 
   return { missingSkills, freePath, proofTask }
+}
+
+function searchUrl(platform: "NPTEL" | "YouTube", query: string): string {
+  if (platform === "NPTEL") {
+    return `https://nptel.ac.in/courses?searchTerm=${encodeURIComponent(query)}`
+  }
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`
+}
+
+/** Deterministic stand-in for the AI-generated path when Gemini is down:
+ * one NPTEL + one YouTube search link per missing skill, split across two
+ * weeks, instead of a 500. */
+function buildFallbackFreePath(
+  missingSkills: string[]
+): { freePath: FreePathWeek[]; proofTask: string } {
+  const skills = missingSkills.length > 0 ? missingSkills : ["this role"]
+  const half = Math.ceil(skills.length / 2)
+  const weeks: [string[], string[]] = [
+    skills.slice(0, half),
+    skills.slice(half).length > 0 ? skills.slice(half) : skills.slice(0, half),
+  ]
+
+  const freePath: FreePathWeek[] = weeks.map((weekSkills, i) => ({
+    week: (i + 1) as 1 | 2,
+    topic: weekSkills.join(", "),
+    resources: weekSkills.flatMap((skill) => [
+      {
+        name: `${skill} courses on NPTEL`,
+        url: searchUrl("NPTEL", skill),
+        platform: "NPTEL" as const,
+      },
+      {
+        name: `${skill} tutorials on YouTube`,
+        url: searchUrl("YouTube", skill),
+        platform: "YouTube" as const,
+      },
+    ]),
+  }))
+
+  return {
+    freePath,
+    proofTask:
+      "Build a small project or write-up that demonstrates the skills above, and share it when you apply.",
+  }
 }
 
 export async function GET(

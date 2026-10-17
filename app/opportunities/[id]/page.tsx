@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { scamCheck } from "@/lib/scam-check"
 import { ApplyButton } from "@/components/apply-button"
+import { ReviewsSection } from "@/components/reviews-section"
 import { HireProofRing } from "@/components/hire-proof-ring"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -157,6 +158,17 @@ export default async function OpportunityPage(
       </section>
 
       <Separator />
+
+      {opportunity.recruiter_id && (
+        <>
+          <section className="flex flex-col gap-2">
+            <h2 className="font-medium">Reviews</h2>
+            <ReviewsSection recruiterId={opportunity.recruiter_id} />
+          </section>
+
+          <Separator />
+        </>
+      )}
 
       <section className="flex flex-col gap-2">
         <h2 className="font-medium">Apply</h2>

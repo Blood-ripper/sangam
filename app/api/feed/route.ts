@@ -49,14 +49,23 @@ export async function GET() {
   }
 
   // Best-effort: one batched Gemini call for every card's match reason.
-  // The feed still works (minus the reason text) if this fails.
+  // The feed still works, with a generic reason per card, if this fails.
   let matchReasons: Record<string, string> = {}
   try {
     matchReasons = await geminiJSON<Record<string, string>>(
       buildMatchReasonPrompt(queryText, rows)
     )
-  } catch {
-    matchReasons = {}
+  } catch (error) {
+    console.error(
+      "[feed] Gemini match-reason generation failed, using generic reasons:",
+      error
+    )
+    matchReasons = Object.fromEntries(
+      rows.map((o) => [
+        o.id,
+        "Matches your profile's skills and goals.",
+      ])
+    )
   }
 
   return NextResponse.json({ opportunities: rows, matchReasons })

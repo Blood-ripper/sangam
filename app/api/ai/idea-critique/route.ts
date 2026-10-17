@@ -12,6 +12,19 @@ type IdeaCritique = {
   leanCanvasGaps: string[]
 }
 
+// Shown when Gemini is unavailable. ideaPulse stays a plain "no signal"
+// 50 and the stored idea_pulse is left untouched (see below) so a
+// transient outage can't overwrite a real score or flip validated status.
+const FALLBACK_CRITIQUE: IdeaCritique = {
+  ideaPulse: 50,
+  strengths: [],
+  risks: [
+    "AI critique is temporarily unavailable — this is a neutral placeholder, not a real assessment.",
+  ],
+  pivotHints: [],
+  leanCanvasGaps: [],
+}
+
 export async function POST(request: Request) {
   const supabase = await createClient()
 
@@ -41,37 +54,45 @@ export async function POST(request: Request) {
   }
 
   let critique: IdeaCritique
+  let usedFallback = false
   try {
     critique = await geminiJSON<IdeaCritique>(buildCritiquePrompt(idea))
-  } catch {
-    return NextResponse.json(
-      { error: "Could not generate a critique right now" },
-      { status: 500 }
+  } catch (error) {
+    console.error(
+      "[idea-critique] Gemini failed, returning neutral fallback:",
+      error
     )
+    critique = FALLBACK_CRITIQUE
+    usedFallback = true
   }
 
-  const update: { idea_pulse: number; status?: string } = {
-    idea_pulse: critique.ideaPulse,
-  }
-  if (critique.ideaPulse >= VALIDATED_THRESHOLD) {
-    update.status = "validated"
-  }
+  // Only persist a real critique. A fallback shouldn't overwrite a
+  // previously computed idea_pulse (or un-validate an already-validated
+  // idea) just because Gemini hiccuped on this request.
+  if (!usedFallback) {
+    const update: { idea_pulse: number; status?: string } = {
+      idea_pulse: critique.ideaPulse,
+    }
+    if (critique.ideaPulse >= VALIDATED_THRESHOLD) {
+      update.status = "validated"
+    }
 
-  const { data: updated, error } = await supabase
-    .from("ideas")
-    .update(update)
-    .eq("id", ideaId)
-    .select("id")
-    .maybeSingle()
+    const { data: updated, error } = await supabase
+      .from("ideas")
+      .update(update)
+      .eq("id", ideaId)
+      .select("id")
+      .maybeSingle()
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-  if (!updated) {
-    return NextResponse.json(
-      { error: "Not allowed to update this idea" },
-      { status: 403 }
-    )
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+    if (!updated) {
+      return NextResponse.json(
+        { error: "Not allowed to update this idea" },
+        { status: 403 }
+      )
+    }
   }
 
   return NextResponse.json(critique)

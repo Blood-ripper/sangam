@@ -4,6 +4,27 @@
 const GEMINI_MODEL = "gemini-2.0-flash-lite"
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
 
+// The free tier can rate-limit or hang during a live demo, so every call
+// gets a hard timeout and one retry before giving up — callers (feed,
+// skill-gap, idea-critique, scam-check) are responsible for falling back
+// to a sensible default instead of surfacing a 500.
+const GEMINI_TIMEOUT_MS = 10_000
+const GEMINI_MAX_ATTEMPTS = 2
+
+async function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number
+): Promise<Response> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    return await fetch(url, { ...init, signal: controller.signal })
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 async function callGemini(
   prompt: string,
   options: { responseMimeType?: string } = {}
@@ -13,25 +34,47 @@ async function callGemini(
     throw new Error("GEMINI_API_KEY is not set")
   }
 
-  const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      ...(options.responseMimeType && {
-        generationConfig: { responseMimeType: options.responseMimeType },
-      }),
+  const body = JSON.stringify({
+    contents: [{ parts: [{ text: prompt }] }],
+    ...(options.responseMimeType && {
+      generationConfig: { responseMimeType: options.responseMimeType },
     }),
   })
 
-  if (!res.ok) {
-    const body = await res.text()
-    throw new Error(`Gemini request failed (${res.status}): ${body}`)
+  let lastError: unknown
+
+  for (let attempt = 1; attempt <= GEMINI_MAX_ATTEMPTS; attempt++) {
+    try {
+      const res = await fetchWithTimeout(
+        `${GEMINI_URL}?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body,
+        },
+        GEMINI_TIMEOUT_MS
+      )
+
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(`Gemini request failed (${res.status}): ${text}`)
+      }
+
+      const json = await res.json()
+      const parts = json?.candidates?.[0]?.content?.parts ?? []
+      return parts.map((p: { text?: string }) => p.text ?? "").join("")
+    } catch (error) {
+      lastError = error
+      console.error(
+        `[gemini] attempt ${attempt}/${GEMINI_MAX_ATTEMPTS} failed:`,
+        error instanceof Error ? error.message : error
+      )
+    }
   }
 
-  const json = await res.json()
-  const parts = json?.candidates?.[0]?.content?.parts ?? []
-  return parts.map((p: { text?: string }) => p.text ?? "").join("")
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Gemini request failed")
 }
 
 /** POSTs `prompt` to Gemini and returns the plain text response. */
