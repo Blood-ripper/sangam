@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator"
 import { PollCard } from "@/components/poll-card"
 import { QASection } from "@/components/qa-section"
 import { IdeaCritiquePanel } from "@/components/idea-critique-panel"
+import { HireProofRing } from "@/components/hire-proof-ring"
 
 // See app/opportunities/[id]/page.tsx for why `instant = false` is needed
 // here: this page reads cookies() via createClient() with no Suspense
@@ -32,13 +33,16 @@ export default async function IdeaPage(props: PageProps<"/idea-lab/[id]">) {
 
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-6 p-4">
-      <div>
-        <h1 className="text-2xl font-semibold">
-          {idea.title ?? "Untitled idea"}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {idea.founder?.name ?? "Anonymous founder"}
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">
+            {idea.title ?? "Untitled idea"}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {idea.founder?.name ?? "Anonymous founder"}
+          </p>
+        </div>
+        <HireProofRing score={idea.idea_pulse} size={48} />
       </div>
 
       {idea.idea_pulse >= 60 && (

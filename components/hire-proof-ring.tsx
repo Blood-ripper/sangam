@@ -1,8 +1,12 @@
+"use client"
+
+import { motion, useReducedMotion } from "motion/react"
 import { cn } from "@/lib/utils"
 
 /**
- * Hire-Proof score ring: an inline SVG arc, colored green (>=80),
- * amber (60-79), or red (<60).
+ * Score ring (Hire-Proof score or Idea Pulse): an inline SVG arc, colored
+ * green (>=80), amber (60-79), or red (<60). The arc sweeps in from empty
+ * to the score on mount, unless prefers-reduced-motion is set.
  */
 export function HireProofRing({
   score,
@@ -13,6 +17,7 @@ export function HireProofRing({
   size?: number
   className?: string
 }) {
+  const reduceMotion = useReducedMotion()
   const stroke = Math.max(3, Math.round(size / 10))
   const radius = (size - stroke) / 2
   const circumference = 2 * Math.PI * radius
@@ -46,16 +51,18 @@ export function HireProofRing({
           strokeWidth={stroke}
           className="stroke-muted"
         />
-        <circle
+        <motion.circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
           fill="none"
           strokeWidth={stroke}
           strokeDasharray={circumference}
-          strokeDashoffset={offset}
           strokeLinecap="round"
           className={colorClass}
+          initial={{ strokeDashoffset: reduceMotion ? offset : circumference }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: reduceMotion ? 0 : 0.5, ease: "easeOut" }}
         />
       </svg>
       <span

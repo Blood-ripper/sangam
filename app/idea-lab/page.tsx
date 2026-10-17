@@ -17,6 +17,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { HireProofRing } from "@/components/hire-proof-ring"
+import { AnimatedCard } from "@/components/motion/animated-card"
 import type { Database } from "@/types/supabase"
 
 type Idea = Database["public"]["Tables"]["ideas"]["Row"] & {
@@ -91,32 +93,34 @@ export default function IdeaLabPage() {
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {ideas.map((idea) => (
-            <Link key={idea.id} href={`/idea-lab/${idea.id}`}>
-              <Card>
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="min-w-0 truncate">
-                      {idea.title ?? "Untitled idea"}
-                    </CardTitle>
-                    <Badge
-                      variant={pulseVariant(idea.idea_pulse)}
-                      className="shrink-0"
-                    >
-                      Pulse {idea.idea_pulse}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {idea.founder?.name ?? "Anonymous founder"}
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <p className="line-clamp-2 text-sm text-muted-foreground">
-                    {idea.problem}
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
+          {ideas.map((idea, i) => (
+            <AnimatedCard key={idea.id} index={i}>
+              <Link href={`/idea-lab/${idea.id}`}>
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-2">
+                      <CardTitle className="min-w-0 truncate">
+                        {idea.title ?? "Untitled idea"}
+                      </CardTitle>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <HireProofRing score={idea.idea_pulse} size={28} />
+                        <Badge variant={pulseVariant(idea.idea_pulse)}>
+                          Pulse {idea.idea_pulse}
+                        </Badge>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {idea.founder?.name ?? "Anonymous founder"}
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="line-clamp-2 text-sm text-muted-foreground">
+                      {idea.problem}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            </AnimatedCard>
           ))}
         </div>
       )}

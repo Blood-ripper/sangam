@@ -1,0 +1,9 @@
+npm notice run sangam@0.1.0 npx
+npm notice run tsc --noEmit -p tsconfig.json
+components/ui/button.tsx(77,6): error TS2322: Type '{ form?: string | undefined; slot?: string | undefined; style?: CSSProperties | undefined; title?: string | undefined; ref?: Ref<HTMLButtonElement> | undefined; ... 287 more ...; transition: { ...; }; }' is not assignable to type 'Omit<HTMLMotionProps<"button">, "ref">'.
+  Types of property 'onAnimationStart' are incompatible.
+    Type 'AnimationEventHandler<HTMLButtonElement> | undefined' is not assignable to type '((definition: AnimationDefinition) => void) | undefined'.
+      Type 'AnimationEventHandler<HTMLButtonElement>' is not assignable to type '(definition: AnimationDefinition) => void'.
+        Types of parameters 'event' and 'definition' are incompatible.
+          Type 'AnimationDefinition' is not assignable to type 'AnimationEvent<HTMLButtonElement>'.
+            Type 'string' is not assignable to type 'AnimationEvent<HTMLButtonElement>'.

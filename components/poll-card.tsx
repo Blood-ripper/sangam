@@ -1,14 +1,15 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { motion, useReducedMotion } from "motion/react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
 import type { Database } from "@/types/supabase"
 
 type Poll = Database["public"]["Tables"]["polls"]["Row"]
 
 export function PollCard({ poll }: { poll: Poll }) {
+  const reduceMotion = useReducedMotion()
   const [counts, setCounts] = useState({
     yes: poll.yes_count,
     no: poll.no_count,
@@ -70,7 +71,15 @@ export function PollCard({ poll }: { poll: Poll }) {
     <div className="flex flex-col gap-2 rounded-lg border border-border p-3">
       <p className="text-sm font-medium">{poll.question}</p>
 
-      <Progress value={yesPercent} />
+      <div className="relative flex h-1 w-full items-center overflow-hidden rounded-full bg-muted">
+        <motion.div
+          className="h-full rounded-full bg-primary"
+          animate={{ width: `${yesPercent}%` }}
+          transition={
+            reduceMotion ? { duration: 0 } : { duration: 0.4, ease: "easeOut" }
+          }
+        />
+      </div>
       <div className="flex justify-between text-xs text-muted-foreground">
         <span>{yesPercent}% yes</span>
         <span>

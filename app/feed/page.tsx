@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { HireProofRing } from "@/components/hire-proof-ring"
+import { AnimatedCard } from "@/components/motion/animated-card"
 import type { Database } from "@/types/supabase"
 
 type MatchedOpportunity =
@@ -102,9 +103,10 @@ export default function FeedPage() {
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {filtered.map((o) => (
+          {filtered.map((o, i) => (
             <OpportunityCard
               key={o.id}
+              index={i}
               opportunity={o}
               matchReason={data?.matchReasons?.[o.id]}
             />
@@ -118,60 +120,64 @@ export default function FeedPage() {
 function OpportunityCard({
   opportunity,
   matchReason,
+  index,
 }: {
   opportunity: MatchedOpportunity
   matchReason?: string
+  index: number
 }) {
   const matchPercent = Math.round(
     Math.max(0, Math.min(1, opportunity.match_score)) * 100
   )
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <CardTitle>
-              <Link
-                href={`/opportunities/${opportunity.id}`}
-                className="hover:underline"
-              >
-                {opportunity.title ?? "Untitled opportunity"}
-              </Link>
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              {opportunity.company}
-            </p>
+    <AnimatedCard index={index}>
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <CardTitle>
+                <Link
+                  href={`/opportunities/${opportunity.id}`}
+                  className="hover:underline"
+                >
+                  {opportunity.title ?? "Untitled opportunity"}
+                </Link>
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {opportunity.company}
+              </p>
+            </div>
+            <HireProofRing score={opportunity.hire_proof_score} />
           </div>
-          <HireProofRing score={opportunity.hire_proof_score} />
-        </div>
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          {opportunity.type && (
-            <Badge variant="secondary">{opportunity.type}</Badge>
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            {opportunity.type && (
+              <Badge variant="secondary">{opportunity.type}</Badge>
+            )}
+            <span className="text-xs text-muted-foreground">
+              {matchPercent}% match
+            </span>
+          </div>
+        </CardHeader>
+
+        <CardContent className="flex flex-col gap-2">
+          {opportunity.stipend_text && (
+            <p className="text-sm font-medium">{opportunity.stipend_text}</p>
           )}
-          <span className="text-xs text-muted-foreground">
-            {matchPercent}% match
-          </span>
-        </div>
-      </CardHeader>
+          {matchReason && (
+            <p className="text-sm text-muted-foreground">{matchReason}</p>
+          )}
+        </CardContent>
 
-      <CardContent className="flex flex-col gap-2">
-        {opportunity.stipend_text && (
-          <p className="text-sm font-medium">{opportunity.stipend_text}</p>
-        )}
-        {matchReason && (
-          <p className="text-sm text-muted-foreground">{matchReason}</p>
-        )}
-      </CardContent>
-
-      <CardFooter className="flex gap-2">
-        <Button asChild size="sm" className="flex-1">
-          <Link href={`/opportunities/${opportunity.id}`}>Apply</Link>
-        </Button>
-        <Button asChild variant="outline" size="sm" className="flex-1">
-          <Link href={`/opportunities/${opportunity.id}#qa`}>Ask</Link>
-        </Button>
-      </CardFooter>
-    </Card>
+        <CardFooter className="flex gap-2">
+          <Button asChild size="sm" className="flex-1">
+            <Link href={`/opportunities/${opportunity.id}`}>Apply</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm" className="flex-1">
+            <Link href={`/opportunities/${opportunity.id}#qa`}>Ask</Link>
+          </Button>
+        </CardFooter>
+      </Card>
+    </AnimatedCard>
   )
 }
