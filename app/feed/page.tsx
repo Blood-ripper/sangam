@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card"
 import { HireProofRing } from "@/components/hire-proof-ring"
 import { AnimatedCard } from "@/components/motion/animated-card"
+import { AtsPanel } from "@/components/ats-panel"
 import type { Database } from "@/types/supabase"
 
 type MatchedOpportunity =
@@ -70,6 +71,8 @@ export default function FeedPage() {
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-4 p-4">
       <h1 className="text-xl font-semibold">Feed</h1>
+
+      <AtsPanel />
 
       <div className="flex flex-wrap gap-2">
         {FILTERS.map((f) => (
