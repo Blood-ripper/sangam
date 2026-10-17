@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { embed, toVectorLiteral } from "@/lib/embeddings"
 import { geminiJSON } from "@/lib/gemini"
 import type { Database } from "@/types/supabase"
 
@@ -36,6 +35,7 @@ export async function GET() {
     // failure here, or from the RPC itself, as "no ranked matches" and
     // fall through to the plain-SELECT fallback below instead of 500ing.
     try {
+      const { embed, toVectorLiteral } = await import("@/lib/embeddings")
       const embedding = await embed(queryText)
 
       const { data: opportunities, error } = await supabase.rpc(

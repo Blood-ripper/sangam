@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { embed, toVectorLiteral } from "@/lib/embeddings"
 import { scamCheck } from "@/lib/scam-check"
 import type { TablesInsert } from "@/types/supabase"
 
@@ -45,10 +44,23 @@ export async function POST(request: Request) {
 
   // Keep the AI feed working for opportunities posted through this form:
   // match_opportunities() (0004_match_fn.sql) only considers rows with a
-  // non-null embedding.
-  const embedding = await embed(
-    [title, description, requiredSkills.join(" ")].filter(Boolean).join(" ")
-  )
+  // non-null embedding. embed() loads an ONNX model via
+  // @xenova/transformers, which can fail to load on Vercel's serverless
+  // runtime — if it does, insert the opportunity anyway with embedding
+  // null (the feed's plain-SELECT fallback will still surface it).
+  let embeddingLiteral: string | null = null
+  try {
+    const { embed, toVectorLiteral } = await import("@/lib/embeddings")
+    const embedding = await embed(
+      [title, description, requiredSkills.join(" ")].filter(Boolean).join(" ")
+    )
+    embeddingLiteral = toVectorLiteral(embedding)
+  } catch (error) {
+    console.error(
+      "[opportunities] embed() failed, inserting without embedding:",
+      error
+    )
+  }
 
   // Best-effort: if the scam check itself fails, don't block a legitimate
   // posting on a Gemini hiccup.
@@ -80,7 +92,7 @@ export async function POST(request: Request) {
     stipend_text: stipendText,
     seats,
     deadline,
-    embedding: toVectorLiteral(embedding),
+    embedding: embeddingLiteral,
     status: blocked ? "blocked" : "active",
   }
 

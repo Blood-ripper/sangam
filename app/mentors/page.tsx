@@ -16,8 +16,8 @@ import {
 
 export default function MentorsPage() {
   return (
-    <main className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
-      <h1 className="text-xl font-semibold">Mentors</h1>
+    <main className="flex w-full flex-col gap-6 px-4 py-8 sm:px-6 lg:px-10">
+      <h1 className="text-3xl font-semibold">Mentors</h1>
 
       <Suspense fallback={<MentorsSkeleton />}>
         <MentorsList />
@@ -28,7 +28,7 @@ export default function MentorsPage() {
 
 function MentorsSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
       {Array.from({ length: 4 }).map((_, i) => (
         <Skeleton key={i} className="h-56 w-full" />
       ))}
@@ -71,9 +71,9 @@ async function MentorsList() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
       {mentors.map((mentor) => (
-        <Card key={mentor.id}>
+        <Card key={mentor.id} className="h-full flex flex-col">
           <CardHeader>
             <CardTitle>{mentor.name ?? "Unnamed mentor"}</CardTitle>
             {mentor.college && <CardDescription>{mentor.college}</CardDescription>}
@@ -94,7 +94,7 @@ async function MentorsList() {
             )}
           </CardContent>
 
-          <CardFooter className="flex gap-2">
+          <CardFooter className="mt-auto flex gap-2">
             <Button asChild size="sm" className="flex-1">
               <a
                 href={`https://meet.jit.si/sangam-${mentor.id.slice(0, 8)}`}

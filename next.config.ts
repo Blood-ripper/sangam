@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   experimental: {
     agentFeedback: true,
   },
+  serverExternalPackages: ["@xenova/transformers", "onnxruntime-node"],
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
