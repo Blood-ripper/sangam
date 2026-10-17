@@ -70,6 +70,8 @@ export function Navbar() {
     { href: "/feed", label: "Feed" },
     { href: "/idea-lab", label: "Idea Lab" },
     { href: "/mentors", label: "Mentors" },
+    { href: "/reels", label: "Reels" },
+    { href: "/community", label: "Community" },
     ...(role === "recruiter" ? [{ href: "/recruiter", label: "Recruiter" }] : []),
     { href: "/applications", label: "My Applications" },
   ]
