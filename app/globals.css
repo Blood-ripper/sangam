@@ -46,6 +46,48 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Magic UI's marquee and animated-gradient-text components reference
+     these animate-* utilities; Tailwind v4 generates them from an
+     --animate-* theme var pointing at a matching @keyframes block below. */
+  --animate-marquee: marquee var(--duration, 40s) linear infinite;
+  --animate-marquee-vertical: marquee-vertical var(--duration, 40s) linear infinite;
+  --animate-gradient: gradient 8s linear infinite;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+  }
+}
+
+@keyframes marquee-vertical {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+  }
+}
+
+@keyframes gradient {
+  to {
+    background-position: var(--bg-size) 0;
+  }
+}
+
+/* AnimatedGradientText has no JS reduced-motion check of its own (it's a
+   plain CSS animation) — the marquee's equivalent case is handled in
+   components/motion/stats-marquee.tsx instead, since Marquee's `repeat`
+   prop duplicates content for the loop and disabling only the animation
+   there would leave visible duplicates. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-gradient {
+    animation: none;
+  }
 }
 
 :root {
