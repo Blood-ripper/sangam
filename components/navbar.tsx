@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Menu, X } from "lucide-react"
+import { motion, useReducedMotion } from "motion/react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 
@@ -21,6 +22,7 @@ export function Navbar() {
   const [name, setName] = useState<string | null>(null)
   const [role, setRole] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const reduceMotion = useReducedMotion()
 
   useEffect(() => {
     // Deferred via .then() rather than an inline async body: see the same
@@ -73,7 +75,12 @@ export function Navbar() {
   ]
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
+    <motion.header
+      className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur"
+      initial={reduceMotion ? false : { y: -24, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+    >
       <nav className="mx-auto flex max-w-5xl items-center justify-between gap-4 p-4">
         <Link href="/" className="font-heading text-lg font-semibold">
           Sangam
@@ -154,6 +161,6 @@ export function Navbar() {
           </div>
         </div>
       )}
-    </header>
+    </motion.header>
   )
 }

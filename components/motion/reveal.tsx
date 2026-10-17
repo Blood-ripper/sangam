@@ -34,7 +34,7 @@ export function Reveal({
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.4, delay, ease: "easeOut" }}
       {...trigger}
     >

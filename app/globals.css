@@ -90,6 +90,16 @@
   }
 }
 
+/* Subtle hover glow for the landing hero's primary CTA (app/page.tsx):
+   a soft brand-colored halo that eases in on hover. No reduced-motion
+   guard needed — it's a hover affordance, not autoplaying motion. */
+.btn-glow {
+  transition: box-shadow 0.3s ease;
+}
+.btn-glow:hover {
+  box-shadow: 0 0 24px 2px color-mix(in oklab, var(--primary) 30%, transparent);
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);

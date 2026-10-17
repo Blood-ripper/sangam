@@ -112,7 +112,7 @@ export default function HomePage() {
           </Reveal>
           <Reveal delay={0.3}>
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-              <Button asChild size="lg">
+              <Button asChild size="lg" className="btn-glow">
                 <Link href="/auth">Get started</Link>
               </Button>
               <Button asChild variant="outline" size="lg">
@@ -129,7 +129,7 @@ export default function HomePage() {
             <Reveal
               key={feature.title}
               inView
-              delay={i * 0.08}
+              delay={i * 0.1}
               className={feature.span}
             >
               <BentoCard
