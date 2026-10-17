@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { triggerHireConfetti } from "@/components/motion/confetti"
 
 type ConfirmStatus = "idle" | "loading" | "confirmed" | "error"
 
@@ -37,6 +38,7 @@ export function ConfirmHireButton({
 
       setScore(json.score)
       setStatus("confirmed")
+      triggerHireConfetti()
       onConfirmed?.(json.score)
     } catch {
       setErrorMessage("Could not confirm the hire.")

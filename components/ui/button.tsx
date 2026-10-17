@@ -51,7 +51,7 @@ function Button({
   ...props
 }: Omit<
   React.ComponentProps<"button">,
-  "onDrag" | "onDragStart" | "onDragEnd"
+  "onDrag" | "onDragStart" | "onDragEnd" | "onAnimationStart"
 > &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
