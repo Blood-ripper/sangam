@@ -6,6 +6,7 @@ import { Spotlight } from "@/components/motion/spotlight"
 import { AnimatedGradientText } from "@/components/motion/animated-gradient-text"
 import { BentoCard, BentoGrid } from "@/components/motion/bento-grid"
 import { StatsMarquee } from "@/components/motion/stats-marquee"
+import { FeaturedWheel } from "@/components/featured-wheel"
 
 // Neutral (zero-chroma) gradient stops, matching this theme's grayscale
 // palette (see --foreground/--muted-foreground in app/globals.css)
@@ -121,6 +122,13 @@ export default function HomePage() {
             </div>
           </Reveal>
         </div>
+      </section>
+
+      <section className="mx-auto flex w-full max-w-5xl flex-col gap-4">
+        <h2 className="text-center text-sm font-medium text-muted-foreground">
+          Scroll to explore
+        </h2>
+        <FeaturedWheel />
       </section>
 
       <section className="mx-auto w-full max-w-4xl">
