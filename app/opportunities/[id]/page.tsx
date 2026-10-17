@@ -1,9 +1,12 @@
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { scamCheck } from "@/lib/scam-check"
+import { ApplyButton } from "@/components/apply-button"
 import { HireProofRing } from "@/components/hire-proof-ring"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent } from "@/components/ui/card"
+import { QASection } from "@/components/qa-section"
 
 // This page reads cookies() (via createClient()) and params directly, with
 // no <Suspense> boundary, so Cache Components can't prerender a static
@@ -30,6 +33,23 @@ export default async function OpportunityPage(
   }
 
   const recruiter = opportunity.recruiter
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  let alreadyApplied = false
+  if (user) {
+    const { data: existingApplication } = await supabase
+      .from("applications")
+      .select("id")
+      .eq("opportunity_id", id)
+      .eq("seeker_id", user.id)
+      .maybeSingle()
+    alreadyApplied = !!existingApplication
+  }
+
+  const realityCheck = await getRealityCheck(supabase, opportunity)
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-6 p-4">
@@ -103,26 +123,145 @@ export default async function OpportunityPage(
 
       <Separator />
 
-      {/* Stub: wire this up to a real skill-gap API once it exists. */}
       <section className="flex flex-col gap-2">
-        <h2 className="font-medium">Skill gap</h2>
-        <p className="text-sm text-muted-foreground">
-          Skill-gap analysis is coming soon — it will compare your
-          profile&apos;s skills against this opportunity&apos;s required
-          skills.
-        </p>
+        <div className="flex items-center gap-2">
+          <h2 className="font-medium">Recruiter Reality Check</h2>
+          {opportunity.status === "unproven" && (
+            <Badge variant="destructive">Unproven</Badge>
+          )}
+        </div>
+        <Card size="sm">
+          <CardContent className="flex flex-col gap-2 text-sm">
+            <p>
+              <span className="font-medium">{realityCheck.hiresConfirmed}</span>{" "}
+              of{" "}
+              <span className="font-medium">{realityCheck.hiresClaimed}</span>{" "}
+              claimed hires confirmed by candidates
+            </p>
+            <RealityCheckTick
+              label="Stipend paid on time"
+              state={realityCheck.stipendPaidOnTime}
+            />
+            <RealityCheckTick
+              label="No fee asked"
+              state={realityCheck.noFeeAsked}
+            />
+          </CardContent>
+        </Card>
       </section>
 
       <Separator />
 
-      {/* Placeholder: the qa_posts / qa_upvotes tables exist, but there's
-          no Q&A UI yet. #qa is also where the feed's "Ask" button links. */}
+      <section className="flex flex-col gap-2">
+        <h2 className="font-medium">Apply</h2>
+        <ApplyButton
+          opportunityId={opportunity.id}
+          initiallyApplied={alreadyApplied}
+        />
+      </section>
+
+      <Separator />
+
       <section id="qa" className="flex flex-col gap-2">
         <h2 className="font-medium">Q&amp;A</h2>
-        <p className="text-sm text-muted-foreground">
-          Questions and answers for this opportunity are coming soon.
-        </p>
+        <QASection opportunityId={opportunity.id} />
       </section>
     </main>
   )
+}
+
+function RealityCheckTick({
+  label,
+  state,
+}: {
+  label: string
+  state: boolean | null
+}) {
+  const symbol = state === null ? "–" : state ? "✓" : "✗"
+  const colorClass =
+    state === null
+      ? "text-muted-foreground"
+      : state
+        ? "text-emerald-600 dark:text-emerald-400"
+        : "text-red-600 dark:text-red-400"
+
+  return (
+    <p>
+      <span className={colorClass}>{symbol}</span> {label}
+      {state === null && (
+        <span className="text-muted-foreground"> (not enough data yet)</span>
+      )}
+    </p>
+  )
+}
+
+type RealityCheck = {
+  hiresClaimed: number
+  hiresConfirmed: number
+  stipendPaidOnTime: boolean | null
+  noFeeAsked: boolean | null
+}
+
+async function getRealityCheck(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  opportunity: {
+    recruiter_id: string | null
+    title: string | null
+    company: string | null
+    description: string | null
+    stipend_text: string | null
+  }
+): Promise<RealityCheck> {
+  let hiresClaimed = 0
+  let hiresConfirmed = 0
+  let stipendPaidOnTime: boolean | null = null
+
+  if (opportunity.recruiter_id) {
+    const { data: recruiterOpportunities } = await supabase
+      .from("opportunities")
+      .select("id")
+      .eq("recruiter_id", opportunity.recruiter_id)
+
+    const opportunityIds = (recruiterOpportunities ?? []).map((o) => o.id)
+
+    if (opportunityIds.length > 0) {
+      const { data: hiredApplications } = await supabase
+        .from("applications")
+        .select("id")
+        .in("opportunity_id", opportunityIds)
+        .eq("status", "hired")
+
+      const applicationIds = (hiredApplications ?? []).map((a) => a.id)
+
+      if (applicationIds.length > 0) {
+        const { data: hireEvents } = await supabase
+          .from("hire_events")
+          .select("claimed_at, confirmed_at, stipend_paid")
+          .in("application_id", applicationIds)
+
+        const events = hireEvents ?? []
+        hiresClaimed = events.filter((e) => e.claimed_at !== null).length
+        hiresConfirmed = events.filter((e) => e.confirmed_at !== null).length
+        stipendPaidOnTime =
+          events.length === 0
+            ? null
+            : events.every((e) => e.stipend_paid)
+      }
+    }
+  }
+
+  let noFeeAsked: boolean | null = null
+  try {
+    const result = await scamCheck({
+      title: opportunity.title,
+      company: opportunity.company,
+      description: opportunity.description,
+      stipend_text: opportunity.stipend_text,
+    })
+    noFeeAsked = !result.flags.some((flag) => /fee|payment|upi/i.test(flag))
+  } catch {
+    noFeeAsked = null
+  }
+
+  return { hiresClaimed, hiresConfirmed, stipendPaidOnTime, noFeeAsked }
 }
