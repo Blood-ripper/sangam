@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import { connection } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { ConfirmHireButton } from "@/components/confirm-hire-button"
 import { HireProofRing } from "@/components/hire-proof-ring"
@@ -9,6 +10,10 @@ import { Card, CardContent } from "@/components/ui/card"
 // Reads cookies() via createClient(), same Cache Components situation as
 // app/opportunities/[id]/page.tsx — see the comment there.
 export const instant = false
+
+// No params/searchParams here (this route has no dynamic segment) to
+// already signal "dynamic" before createClient() runs — see the longer
+// note on this same pattern in app/mentors/page.tsx.
 
 const STATUS_LABEL: Record<string, string> = {
   applied: "Applied",
@@ -30,6 +35,8 @@ type ApplicationRow = {
 }
 
 export default async function ApplicationsPage() {
+  await connection()
+
   const supabase = await createClient()
 
   const {

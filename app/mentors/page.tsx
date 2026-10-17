@@ -1,5 +1,6 @@
 import { Suspense } from "react"
 import Link from "next/link"
+import { connection } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -41,7 +42,17 @@ function MentorsSkeleton() {
 // stream this part in once the query resolves, instead of blocking the
 // whole route the way `instant = false` does on the opportunity/idea
 // detail pages.
+//
+// This route has no params/searchParams to signal "dynamic" on their
+// own, and apparently createClient() calling cookies() internally isn't
+// enough either — the Supabase client trips Cache Components' "unstable
+// value" prerender check (seemingly from a Date.now()-based check
+// somewhere inside its own code) before cookies() fully registers as the
+// reason to bail from static rendering. `connection()` as the literal
+// first line sidesteps that: it unconditionally stops prerendering here.
 async function MentorsList() {
+  await connection()
+
   const supabase = await createClient()
 
   const { data: mentors } = await supabase
