@@ -42,30 +42,68 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  const rows = opportunities ?? []
+  let rows: MatchedOpportunity[] = opportunities ?? []
+  let isFallback = false
+
+  // RPC falls back to an empty list when embeddings aren't populated yet
+  // (e.g. demo data seeded without running the embedding backfill). Fall
+  // back to a plain, unranked list of active opportunities so the feed
+  // still shows something.
+  if (rows.length === 0) {
+    isFallback = true
+    const { data: fallbackOpportunities, error: fallbackError } =
+      await supabase
+        .from("opportunities")
+        .select(
+          "id, recruiter_id, title, company, type, description, required_skills, stipend_text, seats, deadline, status, created_at"
+        )
+        .eq("status", "active")
+        .limit(20)
+
+    if (fallbackError) {
+      return NextResponse.json(
+        { error: fallbackError.message },
+        { status: 500 }
+      )
+    }
+
+    rows = (fallbackOpportunities ?? []).map((o) => ({
+      ...o,
+      similarity: 0.5,
+      hire_proof_score: 0,
+      match_score: 0.5,
+    })) as MatchedOpportunity[]
+  }
 
   if (rows.length === 0) {
     return NextResponse.json({ opportunities: [], matchReasons: {} })
   }
 
   // Best-effort: one batched Gemini call for every card's match reason.
-  // The feed still works, with a generic reason per card, if this fails.
+  // The feed still works, with a generic reason per card, if this fails
+  // (or if these are unranked fallback rows with no real match to explain).
   let matchReasons: Record<string, string> = {}
-  try {
-    matchReasons = await geminiJSON<Record<string, string>>(
-      buildMatchReasonPrompt(queryText, rows)
-    )
-  } catch (error) {
-    console.error(
-      "[feed] Gemini match-reason generation failed, using generic reasons:",
-      error
-    )
+  if (isFallback) {
     matchReasons = Object.fromEntries(
-      rows.map((o) => [
-        o.id,
-        "Matches your profile's skills and goals.",
-      ])
+      rows.map((o) => [o.id, "Matches your profile's skills and goals."])
     )
+  } else {
+    try {
+      matchReasons = await geminiJSON<Record<string, string>>(
+        buildMatchReasonPrompt(queryText, rows)
+      )
+    } catch (error) {
+      console.error(
+        "[feed] Gemini match-reason generation failed, using generic reasons:",
+        error
+      )
+      matchReasons = Object.fromEntries(
+        rows.map((o) => [
+          o.id,
+          "Matches your profile's skills and goals.",
+        ])
+      )
+    }
   }
 
   return NextResponse.json({ opportunities: rows, matchReasons })

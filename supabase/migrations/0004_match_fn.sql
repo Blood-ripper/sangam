@@ -55,7 +55,6 @@ as $$
   from public.opportunities o
   left join public.profiles p on p.id = o.recruiter_id
   where o.status = 'active'
-    and o.embedding is not null
   order by match_score desc
   limit match_count;
 $$;
