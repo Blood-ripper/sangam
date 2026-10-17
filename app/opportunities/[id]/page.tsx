@@ -52,15 +52,21 @@ export default async function OpportunityPage(
   const realityCheck = await getRealityCheck(supabase, opportunity)
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-6 p-4">
+    <main className="mx-auto flex max-w-6xl flex-col gap-6 p-4">
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold break-words">
             {opportunity.title ?? "Untitled opportunity"}
           </h1>
           <p className="text-muted-foreground">{opportunity.company}</p>
         </div>
-        {recruiter && <HireProofRing score={recruiter.hire_proof_score} size={56} />}
+        {recruiter && (
+          <HireProofRing
+            score={recruiter.hire_proof_score}
+            size={56}
+            className="shrink-0"
+          />
+        )}
       </div>
 
       <div className="flex flex-wrap gap-2">

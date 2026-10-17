@@ -31,7 +31,7 @@ export default async function IdeaPage(props: PageProps<"/idea-lab/[id]">) {
     .eq("idea_id", id)
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-6 p-4">
+    <main className="mx-auto flex max-w-6xl flex-col gap-6 p-4">
       <div>
         <h1 className="text-2xl font-semibold">
           {idea.title ?? "Untitled idea"}
@@ -77,11 +77,15 @@ export default async function IdeaPage(props: PageProps<"/idea-lab/[id]">) {
 
       <section className="flex flex-col gap-3">
         <h2 className="font-medium">Polls</h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {(polls ?? []).map((poll) => (
-            <PollCard key={poll.id} poll={poll} />
-          ))}
-        </div>
+        {(polls ?? []).length === 0 ? (
+          <p className="text-sm text-muted-foreground">No polls yet.</p>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {(polls ?? []).map((poll) => (
+              <PollCard key={poll.id} poll={poll} />
+            ))}
+          </div>
+        )}
       </section>
 
       <Separator />

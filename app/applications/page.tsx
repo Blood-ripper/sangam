@@ -40,7 +40,7 @@ export default async function ApplicationsPage() {
     redirect("/auth")
   }
 
-  const { data: applications } = await supabase
+  const { data: applications, error } = await supabase
     .from("applications")
     .select(
       "id, status, hire_confirmed, applied_at, opportunity:opportunities(id, title, company, recruiter:profiles(name, hire_proof_score))"
@@ -51,10 +51,14 @@ export default async function ApplicationsPage() {
   const rows = (applications ?? []) as unknown as ApplicationRow[]
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
+    <main className="mx-auto flex max-w-6xl flex-col gap-4 p-4">
       <h1 className="text-xl font-semibold">My applications</h1>
 
-      {rows.length === 0 ? (
+      {error ? (
+        <p className="text-sm text-destructive" role="alert">
+          Could not load your applications right now.
+        </p>
+      ) : rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           You haven&apos;t applied to anything yet.
         </p>
@@ -74,19 +78,20 @@ function ApplicationCard({ application }: { application: ApplicationRow }) {
 
   return (
     <Card size="sm">
-      <CardContent className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+      <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
           {opportunity?.recruiter && (
             <HireProofRing
               score={opportunity.recruiter.hire_proof_score}
               size={36}
+              className="shrink-0"
             />
           )}
-          <div>
+          <div className="min-w-0">
             {opportunity ? (
               <Link
                 href={`/opportunities/${opportunity.id}`}
-                className="font-medium hover:underline"
+                className="truncate font-medium hover:underline block"
               >
                 {opportunity.title ?? "Untitled opportunity"}
               </Link>
@@ -96,14 +101,14 @@ function ApplicationCard({ application }: { application: ApplicationRow }) {
               </p>
             )}
             {opportunity?.company && (
-              <p className="text-sm text-muted-foreground">
+              <p className="truncate text-sm text-muted-foreground">
                 {opportunity.company}
               </p>
             )}
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-1.5">
+        <div className="flex shrink-0 flex-row items-center gap-1.5 sm:flex-col sm:items-end">
           <Badge variant="outline">
             {STATUS_LABEL[application.status] ?? application.status}
           </Badge>

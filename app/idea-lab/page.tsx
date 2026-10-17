@@ -57,7 +57,7 @@ export default function IdeaLabPage() {
   }, [reloadKey])
 
   return (
-    <main className="mx-auto flex max-w-5xl flex-col gap-4 p-4">
+    <main className="mx-auto flex max-w-6xl flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Idea Lab</h1>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -96,8 +96,13 @@ export default function IdeaLabPage() {
               <Card>
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2">
-                    <CardTitle>{idea.title ?? "Untitled idea"}</CardTitle>
-                    <Badge variant={pulseVariant(idea.idea_pulse)}>
+                    <CardTitle className="min-w-0 truncate">
+                      {idea.title ?? "Untitled idea"}
+                    </CardTitle>
+                    <Badge
+                      variant={pulseVariant(idea.idea_pulse)}
+                      className="shrink-0"
+                    >
                       Pulse {idea.idea_pulse}
                     </Badge>
                   </div>

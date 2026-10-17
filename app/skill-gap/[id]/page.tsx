@@ -38,7 +38,7 @@ export default async function SkillGapPage(
   }
 
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-6 p-4">
+    <main className="mx-auto flex max-w-6xl flex-col gap-6 p-4">
       <Card className="border-amber-500/40 bg-amber-500/10">
         <CardContent className="flex flex-col gap-1">
           <p className="font-medium text-amber-700 dark:text-amber-400">
@@ -78,6 +78,11 @@ export default async function SkillGapPage(
 
             <section className="flex flex-col gap-3">
               <h2 className="font-medium">2-week free path</h2>
+              {plan.freePath.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No learning path available right now.
+                </p>
+              ) : (
               <ol className="flex flex-col gap-3">
                 {plan.freePath.map((week) => (
                   <li key={week.week} className="flex flex-col gap-1.5">
@@ -104,6 +109,7 @@ export default async function SkillGapPage(
                   </li>
                 ))}
               </ol>
+              )}
             </section>
 
             <Card size="sm">

@@ -67,7 +67,7 @@ export default function FeedPage() {
   }, [data, filter])
 
   return (
-    <main className="mx-auto flex max-w-5xl flex-col gap-4 p-4">
+    <main className="mx-auto flex max-w-6xl flex-col gap-4 p-4">
       <h1 className="text-xl font-semibold">Feed</h1>
 
       <div className="flex flex-wrap gap-2">

@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { embed, toVectorLiteral } from "@/lib/embeddings"
+import { scamCheck } from "@/lib/scam-check"
 import type { TablesInsert } from "@/types/supabase"
+
+const SCAM_CONFIDENCE_THRESHOLD = 0.8
 
 function asTrimmedString(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null
@@ -47,6 +50,23 @@ export async function POST(request: Request) {
     [title, description, requiredSkills.join(" ")].filter(Boolean).join(" ")
   )
 
+  // Best-effort: if the scam check itself fails, don't block a legitimate
+  // posting on a Gemini hiccup.
+  let flags: string[] = []
+  let blocked = false
+  try {
+    const result = await scamCheck({
+      title,
+      company,
+      description,
+      stipend_text: stipendText,
+    })
+    flags = result.flags
+    blocked = result.isScam && result.confidence > SCAM_CONFIDENCE_THRESHOLD
+  } catch {
+    blocked = false
+  }
+
   // recruiter_id always comes from the session, never the request body —
   // RLS (opportunities_insert_owner) would reject a mismatched value
   // anyway, but failing fast here gives a clearer error.
@@ -61,7 +81,7 @@ export async function POST(request: Request) {
     seats,
     deadline,
     embedding: toVectorLiteral(embedding),
-    status: "active",
+    status: blocked ? "blocked" : "active",
   }
 
   const { data, error } = await supabase
@@ -72,6 +92,13 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  if (blocked) {
+    return NextResponse.json(
+      { error: "Listing blocked", flags },
+      { status: 422 }
+    )
   }
 
   return NextResponse.json({ opportunity: data }, { status: 201 })

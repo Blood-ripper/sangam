@@ -30,6 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type Opportunity = Tables<"opportunities">
 type Application = Tables<"applications"> & {
@@ -172,7 +173,11 @@ export default function RecruiterPage() {
     setPosting(false)
 
     if (!res.ok) {
-      setPostError(json?.error ?? "Could not post this opening.")
+      if (res.status === 422 && Array.isArray(json?.flags)) {
+        setPostError(`Listing blocked: ${json.flags.join(", ")}`)
+      } else {
+        setPostError(json?.error ?? "Could not post this opening.")
+      }
       return
     }
 
@@ -214,7 +219,7 @@ export default function RecruiterPage() {
   }
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-6 p-4">
+    <main className="mx-auto flex max-w-6xl flex-col gap-6 p-4">
       <h1 className="text-xl font-semibold">Recruiter dashboard</h1>
 
       <Card>
@@ -362,7 +367,10 @@ export default function RecruiterPage() {
         )}
 
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <div className="flex flex-col gap-3">
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full" />
+          </div>
         ) : openings.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             You haven&apos;t posted any openings yet.
@@ -374,11 +382,13 @@ export default function RecruiterPage() {
               <Card key={opening.id}>
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <CardTitle>{opening.title}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{opening.company}</p>
+                    <div className="min-w-0">
+                      <CardTitle className="truncate">{opening.title}</CardTitle>
+                      <p className="truncate text-sm text-muted-foreground">
+                        {opening.company}
+                      </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-2">
                       {opening.type && <Badge variant="secondary">{opening.type}</Badge>}
                       <Badge variant="outline">{opening.status}</Badge>
                     </div>
@@ -388,7 +398,13 @@ export default function RecruiterPage() {
                   </p>
                 </CardHeader>
 
-                {applicants.length > 0 && (
+                {applicants.length === 0 ? (
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      No applicants yet.
+                    </p>
+                  </CardContent>
+                ) : (
                   <CardContent>
                     <Table>
                       <TableHeader>

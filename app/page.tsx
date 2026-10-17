@@ -56,7 +56,7 @@ const STATS = [
 
 export default function HomePage() {
   return (
-    <main className="flex flex-1 flex-col gap-16 px-4 py-16 sm:py-24">
+    <main className="mx-auto flex max-w-6xl flex-1 flex-col gap-16 px-4 py-16 sm:py-24">
       <section className="mx-auto flex max-w-2xl flex-col items-center gap-5 text-center">
         <h1 className="text-3xl font-semibold sm:text-4xl">
           Where talent, ideas and opportunities meet. Proof, not promises.
