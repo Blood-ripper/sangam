@@ -141,7 +141,7 @@ export default function OnboardingPage() {
       return
     }
 
-    router.push("/feed")
+    router.push("/dashboard")
   }
 
   return (

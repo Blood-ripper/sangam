@@ -112,7 +112,7 @@ export default function FaqPage() {
   return (
     <main className="flex w-full flex-col gap-8 px-4 py-8 sm:px-6 lg:px-10">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-semibold">FAQ & Support</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">FAQ & Support</h1>
         <p className="text-muted-foreground max-w-2xl text-sm">
           Answers to common questions about Sangam. Can&apos;t find what
           you&apos;re looking for? Contact us directly below.
@@ -122,9 +122,7 @@ export default function FaqPage() {
       <div className="flex flex-col gap-6">
         {FAQ_GROUPS.map((group) => (
           <section key={group.title} className="flex flex-col gap-3">
-            <h2 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-              {group.title}
-            </h2>
+            <h2 className="text-base font-semibold tracking-tight text-foreground">{group.title}</h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {group.items.map((item) => (
                 <details

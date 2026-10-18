@@ -1,7 +1,11 @@
 "use client"
 
 import { useState, type FormEvent } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { Briefcase, GraduationCap, Lightbulb, Users } from "lucide-react"
+import { SangamLogo, SangamMark } from "@/components/brand/sangam-logo"
+import { OrbitingCircles } from "@/components/magicui/orbiting-circles"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -105,7 +109,7 @@ export default function AuthPage() {
       .eq("id", data.user.id)
       .maybeSingle()
 
-    router.push(profile?.name ? "/feed" : "/onboarding")
+    router.push(profile?.name ? "/dashboard" : "/onboarding")
   }
 
   async function handlePasswordSubmit(e: FormEvent) {
@@ -157,14 +161,55 @@ export default function AuthPage() {
       .maybeSingle()
 
     setPwLoading(false)
-    router.push(profile?.name ? "/feed" : "/onboarding")
+    router.push(profile?.name ? "/dashboard" : "/onboarding")
   }
 
   return (
-    <main className="flex min-h-full flex-1 items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
+    <main className="relative grid min-h-dvh lg:grid-cols-[1.1fr_1fr]">
+      <section className="relative hidden flex-col justify-between overflow-hidden border-r border-white/[0.06] p-10 lg:flex xl:p-14">
+        <div
+          aria-hidden="true"
+          className="animate-aurora pointer-events-none absolute -inset-1/4 bg-[radial-gradient(40%_35%_at_30%_30%,rgb(77_102_233/0.22),transparent_70%),radial-gradient(35%_30%_at_70%_60%,rgb(36_176_127/0.16),transparent_70%),radial-gradient(30%_30%_at_40%_80%,rgb(232_158_49/0.14),transparent_70%)]"
+        />
+        <Link href="/" className="relative w-fit" aria-label="Sangam home">
+          <SangamLogo size={34} />
+        </Link>
+
+        <div className="relative flex h-[440px] items-center justify-center">
+          <OrbitingCircles radius={170} duration={36} iconSize={46}>
+            {[Briefcase, Lightbulb, GraduationCap, Users].map((Icon, i) => (
+              <span key={i} className="glass grid size-full place-items-center rounded-2xl text-foreground">
+                <Icon className="size-5" />
+              </span>
+            ))}
+          </OrbitingCircles>
+          <OrbitingCircles radius={100} duration={22} iconSize={14} reverse path>
+            {["#4d66e9", "#e89e31", "#24b07f"].map((c) => (
+              <span key={c} className="size-full rounded-full" style={{ background: c, boxShadow: `0 0 16px ${c}` }} />
+            ))}
+          </OrbitingCircles>
+          <SangamMark size={120} animated />
+        </div>
+
+        <div className="relative max-w-md">
+          <p className="text-3xl leading-tight font-bold tracking-tight text-foreground">
+            Where talent, ideas and opportunities meet.
+          </p>
+          <p className="text-gradient-accent mt-1 text-3xl leading-tight font-bold tracking-tight">Proof, not promises.</p>
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+            Recruiters are scored on hires that candidates confirm. Ideas are tested by the community. Every
+            student gets a free path to the skills openings ask for.
+          </p>
+        </div>
+      </section>
+
+      <div className="flex items-center justify-center p-4 sm:p-8">
+      <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Sign in to Sangam</CardTitle>
+          <Link href="/" className="mb-3 w-fit lg:hidden" aria-label="Sangam home">
+            <SangamLogo size={30} />
+          </Link>
+          <CardTitle className="text-2xl font-bold tracking-tight">Sign in to Sangam</CardTitle>
           <CardDescription>
             {step === "email"
               ? "Continue with Google, or get a one-time code by email."
@@ -184,10 +229,16 @@ export default function AuthPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full"
+                className="h-11 w-full gap-2.5 text-sm font-semibold"
                 disabled={loading}
                 onClick={handleGoogleSignIn}
               >
+                <svg viewBox="0 0 24 24" className="size-[18px]" aria-hidden="true">
+                  <path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.45a5.52 5.52 0 0 1-2.39 3.62v3h3.87c2.26-2.08 3.57-5.15 3.57-8.81Z" />
+                  <path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.92l-3.87-3A7.16 7.16 0 0 1 12 19.25a7.17 7.17 0 0 1-6.73-4.95h-4v3.09A12 12 0 0 0 12 24Z" />
+                  <path fill="#FBBC05" d="M5.27 14.3a7.2 7.2 0 0 1 0-4.6V6.61h-4a12 12 0 0 0 0 10.78l4-3.09Z" />
+                  <path fill="#EA4335" d="M12 4.75c1.76 0 3.34.61 4.59 1.8l3.43-3.43A11.5 11.5 0 0 0 12 0 12 12 0 0 0 1.27 6.61l4 3.09A7.17 7.17 0 0 1 12 4.75Z" />
+                </svg>
                 Continue with Google
               </Button>
 
@@ -350,6 +401,7 @@ export default function AuthPage() {
           </p>
         </CardFooter>
       </Card>
+      </div>
     </main>
   )
 }

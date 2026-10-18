@@ -25,7 +25,7 @@ export async function GET(request: Request) {
           .maybeSingle()
 
         return NextResponse.redirect(
-          `${origin}${profile?.name ? "/feed" : "/onboarding"}`
+          `${origin}${profile?.name ? "/dashboard" : "/onboarding"}`
         )
       }
     }

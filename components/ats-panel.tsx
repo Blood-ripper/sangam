@@ -18,7 +18,7 @@ export function AtsPanel() {
   const [open, setOpen] = useState(false)
 
   return (
-    <Card>
+    <Card id="ats" className="scroll-mt-24">
       <CardHeader>
         <CardTitle>ATS Resume Builder</CardTitle>
         <CardDescription>
