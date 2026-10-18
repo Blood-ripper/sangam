@@ -1,10 +1,10 @@
 "use client"
 
-import { motion, useInView, useReducedMotion } from "motion/react"
+import { useInView, useReducedMotion } from "motion/react"
 import { useRef } from "react"
 import { cn } from "@/lib/utils"
 
-/** Horizontal 0–100 meter (e.g. idea validation), animated on first view. */
+/** Horizontal 0–100 meter (e.g. idea validation), filled with a CSS transition on first view. */
 export function MeterBar({
   value,
   color,
@@ -20,9 +20,10 @@ export function MeterBar({
   showValue?: boolean
 }) {
   const ref = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: "-5% 0px" })
+  const inView = useInView(ref, { once: true, margin: "0px 0px -5% 0px" })
   const reduceMotion = useReducedMotion()
   const v = Math.max(0, Math.min(100, Math.round(value)))
+  const filled = inView || reduceMotion
 
   return (
     <div ref={ref} className={cn("flex items-center gap-3", className)}>
@@ -34,12 +35,13 @@ export function MeterBar({
         aria-valuemax={100}
         aria-valuenow={v}
       >
-        <motion.div
+        <div
           className="absolute inset-y-0 left-0 rounded-full"
-          style={{ background: color ?? "linear-gradient(90deg, #8c72ee, #67e8f9)" }}
-          initial={reduceMotion ? { width: `${v}%` } : { width: 0 }}
-          animate={inView ? { width: `${v}%` } : undefined}
-          transition={{ duration: 0.9, ease: [0.2, 0.8, 0.2, 1] }}
+          style={{
+            width: filled ? `${v}%` : "0%",
+            background: color ?? "linear-gradient(90deg, #8c72ee, #67e8f9)",
+            transition: reduceMotion ? undefined : "width .9s cubic-bezier(.2,.8,.2,1)",
+          }}
         />
       </div>
       {showValue && <span className="w-9 text-right text-xs text-muted-foreground tabular-nums">{v}%</span>}

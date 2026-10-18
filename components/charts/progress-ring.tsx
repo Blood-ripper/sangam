@@ -59,6 +59,7 @@ export function ProgressRing({
           strokeWidth={thickness}
           strokeLinecap="round"
           strokeDasharray={drawn ? `${len} ${C}` : `0 ${C}`}
+          opacity={drawn && len > 0 ? 1 : 0}
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
           style={{ transition: reduceMotion ? undefined : "stroke-dasharray 1.2s cubic-bezier(.2,.8,.2,1) .15s" }}
         />

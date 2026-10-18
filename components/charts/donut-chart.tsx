@@ -51,7 +51,8 @@ export function DonutChart({
   const shown = active !== null ? arcs[active] : null
 
   return (
-    <div ref={ref} className={cn("flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:gap-6", className)}>
+    <div ref={ref} className={cn("@container w-full", className)}>
+     <div className="flex flex-col items-center gap-4 @sm:flex-row @sm:gap-6">
       <div className="relative shrink-0" style={{ width: size, height: size }}>
         <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} role="img" aria-label={ariaLabel}>
           <circle
@@ -121,6 +122,7 @@ export function DonutChart({
           </li>
         ))}
       </ul>
+     </div>
     </div>
   )
 }
