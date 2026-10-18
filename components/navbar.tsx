@@ -74,6 +74,7 @@ export function Navbar() {
     { href: "/community", label: "Community" },
     ...(role === "recruiter" ? [{ href: "/recruiter", label: "Recruiter" }] : []),
     { href: "/applications", label: "My Applications" },
+    { href: "/faq", label: "FAQ" },
   ]
 
   return (
